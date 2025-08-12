@@ -1,4 +1,3 @@
-use std::io::{self, Write};
 use crate::utils::take_input_line;
 use crate::{AppState, Command, CommandResult, Shortcut};
 

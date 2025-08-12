@@ -40,8 +40,8 @@ impl fmt::Display for Shortcut {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{} {} {}",
-            self.lookup_count, self.key_combo, self.description
+            "{} {}",
+            self.key_combo, self.description
         )
     }
 }
@@ -77,12 +77,8 @@ impl Shortcuts {
     }
 
     fn save(&self, save_path: &PathBuf) -> Result<(), std::io::Error> {
-        let serialized = serde_json::to_vec(&self.shortcuts)?;
-
-        println!("{save_path:?}");
-        let mut file = File::open(save_path).expect("a valid file should be here");
-
-        file.write_all(&serialized[..])?;
+        let file = File::create(save_path)?;
+        serde_json::to_writer(file, &self)?;
 
         Ok(())
     }
@@ -143,10 +139,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     println!("No path provided, looking for shortcuts.json in the current directory.");
 
     let default_path = env::current_dir()?.join("shortcuts.json");
-
-    if !default_path.exists() {
-        File::create(&default_path)?;
-    }
 
     let shortcuts = Shortcuts::from_file(&default_path).unwrap_or(Shortcuts::new());
 

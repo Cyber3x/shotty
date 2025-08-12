@@ -9,8 +9,8 @@ impl Command for List {
         if shortcuts.len() == 0 {
             println!("No shortcuts are stored! Use the `add` command to add new shortcuts.");
         } else {
-            for shortcut in app_state.shortcuts.get_all_shortcuts() {
-                println!("{shortcut:?}");
+            for (idx, shortcut) in app_state.shortcuts.get_all_shortcuts().iter().enumerate() {
+                println!("{} - {shortcut}", idx + 1);
             }
         }
 
