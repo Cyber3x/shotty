@@ -14,9 +14,8 @@ impl Command for Add {
 
         println!("New shortcut added! {}", new_shortcut);
         app_state.shortcuts.add_shortcut(new_shortcut);
-        app_state.shortcuts.save(&app_state.save_path).unwrap();
+        app_state.shortcuts.save().unwrap();
 
         CommandResult::Continue
     }
 }
-

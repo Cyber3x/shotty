@@ -1,1 +1,1 @@
-{"shortcuts":[{"lookup_count":0,"key_combo":"2","description":"test"},{"lookup_count":0,"key_combo":"hello","description":"test"},{"lookup_count":0,"key_combo":"CTRL+T","description":"open new tab"}]}
+{"shortcuts":[{"lookup_count":26,"key_combo":"CTRL+T","description":"open new tab"},{"lookup_count":11,"key_combo":"CTRL+X","description":"kill current tab"},{"lookup_count":12,"key_combo":"SHIFT+E","description":"go to next tab"},{"lookup_count":13,"key_combo":"CTRL+H","description":"open help"}]}

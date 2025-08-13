@@ -1,12 +1,13 @@
 use serde::{Deserialize, Serialize};
 use std::{
+    cmp::Reverse,
     collections::HashMap,
     env,
     error::Error,
-    fmt,
+    fmt::{self},
     fs::File,
-    io::{self, Read, Write},
-    path::{Path, PathBuf},
+    io::{self, Write},
+    path::PathBuf,
 };
 
 mod commands {
@@ -14,6 +15,7 @@ mod commands {
     pub mod exit;
     pub mod help;
     pub mod list;
+    pub mod remove;
 }
 mod utils;
 
@@ -40,8 +42,8 @@ impl fmt::Display for Shortcut {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{} {}",
-            self.key_combo, self.description
+            "{} {} ({})",
+            self.key_combo, self.description, self.lookup_count
         )
     }
 }
@@ -59,16 +61,24 @@ impl Shortcut {
 #[derive(Deserialize, Serialize)]
 struct Shortcuts {
     shortcuts: Vec<Shortcut>,
+
+    #[serde(skip_serializing)]
+    save_path: Option<PathBuf>,
 }
 
 impl Shortcuts {
     fn new() -> Self {
         Self {
             shortcuts: Vec::new(),
+            save_path: None,
         }
     }
 
-    fn get_all_shortcuts(&self) -> &Vec<Shortcut> {
+    fn set_save_path(&mut self, new_save_path: PathBuf) {
+        self.save_path = Some(new_save_path);
+    }
+
+    fn get_all_shortcuts(&self) -> &[Shortcut] {
         self.shortcuts.as_ref()
     }
 
@@ -76,20 +86,59 @@ impl Shortcuts {
         self.shortcuts.push(shortcut);
     }
 
-    fn save(&self, save_path: &PathBuf) -> Result<(), std::io::Error> {
-        let file = File::create(save_path)?;
+    fn increment_lookup_count(&mut self, index: usize, amount: u32) {
+        if let Some(shortcut) = self.shortcuts.get_mut(index) {
+            shortcut.lookup_count += amount;
+        }
+    }
+
+    /// Returns the indices of all shortcuts, sorted in descending order of `lookup_count`.
+    ///
+    /// The returned vector contains the zero-based indices into `self.shortcuts`,
+    /// ordered so that the shortcut with the highest `lookup_count` appears first.
+    /// This can be used to display shortcuts ranked by their popularity or usage frequency.
+    ///
+    /// # Examples
+    /// ```
+    /// let sorted_indices = shortcuts.get_sorted_indexes();
+    /// // `sorted_indices[0]` is the index of the most frequently looked-up shortcut.
+    /// ```
+    fn get_sorted_indexes(&self) -> Vec<usize> {
+        // get all indexes
+        let mut indexes: Vec<usize> = (0..self.shortcuts.len()).collect();
+        // sort them by lookup count desc
+        indexes.sort_by_key(|&i| Reverse(self.shortcuts[i].lookup_count));
+        indexes
+    }
+
+    fn save(&self) -> Result<(), std::io::Error> {
+        // TODO: remove this unwrap
+        let file = File::create(self.save_path.clone().unwrap())?;
         serde_json::to_writer(file, &self)?;
 
         Ok(())
     }
 
-    fn from_file(path: &PathBuf) -> Result<Shortcuts, std::io::Error> {
-        let mut file = File::open(path)?;
-        let mut contents = String::new();
-        file.read_to_string(&mut contents)?;
+    /// Loads shortcuts from a JSON file.
+    ///
+    /// If `path_maybe` is `Some`, that path is used. Otherwise, it defaults to
+    /// `shortcuts.json` in the current working directory.
+    /// If the file exists, it is read and deserialized into a `Shortcuts` instance.
+    /// If it does not exist, a new `Shortcuts` instance is created.
+    /// In both cases, the `save_path` is set to the chosen path.
+    fn load_from_file(path_maybe: Option<PathBuf>) -> Result<Shortcuts, std::io::Error> {
+        let default_path = env::current_dir()?.join("shortcuts.json");
 
-        let shortcuts = serde_json::from_str(&contents)?;
+        let path = path_maybe.unwrap_or(default_path);
 
+        let mut shortcuts = if path.exists() {
+            let contents = std::fs::read_to_string(&path)?;
+            serde_json::from_str(&contents)?
+        } else {
+            Shortcuts::new()
+        };
+
+        shortcuts.set_save_path(path);
         Ok(shortcuts)
     }
 }
@@ -102,7 +151,6 @@ impl Default for Shortcuts {
 
 struct AppState {
     shortcuts: Shortcuts,
-    save_path: PathBuf,
 }
 
 trait Command {
@@ -138,25 +186,16 @@ impl CommandRegistry {
 pub fn run() -> Result<(), Box<dyn Error>> {
     println!("No path provided, looking for shortcuts.json in the current directory.");
 
-    let default_path = env::current_dir()?.join("shortcuts.json");
-
-    let shortcuts = Shortcuts::from_file(&default_path).unwrap_or(Shortcuts::new());
+    let shortcuts = Shortcuts::load_from_file(None)?;
 
     let mut command_registry = CommandRegistry::new();
-    let mut app_state = AppState {
-        shortcuts,
-        save_path: default_path,
-    };
-
-    println!("{}", app_state.save_path.to_str().unwrap());
+    let mut app_state = AppState { shortcuts };
 
     command_registry.add_command("help", Box::new(commands::help::Help));
     command_registry.add_command("add", Box::new(commands::add::Add));
     command_registry.add_command("list", Box::new(commands::list::List));
-    // command_registry.add_command("remove", Box::new(Add));
+    command_registry.add_command("remove", Box::new(commands::remove::Remove));
     command_registry.add_command("exit", Box::new(commands::exit::Exit));
-    // command_registry.add_command("add", Box::new(Add));
-    // command_registry.add_command("add", Box::new(Add));
 
     println!("Shortcuts CLI");
     println!(
@@ -171,11 +210,13 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         print!("> ");
         let _ = io::stdout().flush();
         io::stdin().read_line(&mut input)?;
-        let input = input.trim();
+        let cmd_name = input.trim().to_lowercase();
 
-        match command_registry.get_command(input) {
+        let cmd = command_registry.get_command(&cmd_name);
+
+        match cmd {
             None => {
-                println!("Command '{}' not found!", input);
+                println!("Command '{}' not found!", cmd_name);
                 continue;
             }
             Some(cmd) => {

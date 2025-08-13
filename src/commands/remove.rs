@@ -1,24 +1,24 @@
-use crate::{
-    AppState, Command, CommandResult,
-    utils::{self, take_input_number},
-};
+use std::cmp::Reverse;
 
-pub struct List;
+use crate::utils::{self, take_input_number};
+use crate::{AppState, Command, CommandResult};
 
-impl Command for List {
-    fn execute(&self, app_state: &mut AppState) -> crate::CommandResult {
+pub struct Remove;
+
+impl Command for Remove {
+    fn execute(&self, app_state: &mut AppState) -> CommandResult {
         if app_state.shortcuts.get_all_shortcuts().is_empty() {
-            println!("No shortcuts are stored! Use the `add` command to add new shortcuts.");
+            println!("No shortcuts are stored! Nothing to delete.");
             return CommandResult::Continue;
         };
 
         let shortcuts = app_state.shortcuts.get_all_shortcuts();
 
+        let sorted_indexes = app_state.shortcuts.get_sorted_indexes();
+
         let headers = ["Number", "Shortcut", "Description", "Lookup count"]
             .map(String::from)
             .to_vec();
-
-        let sorted_indexes = app_state.shortcuts.get_sorted_indexes();
 
         utils::print_table(
             headers,
@@ -29,16 +29,15 @@ impl Command for List {
                     let s = &shortcuts[shortcut_index];
                     vec![
                         s.lookup_count.to_string(),
-                        (display_idx + 1).to_string(),
                         s.key_combo.clone(),
                         s.description.clone(),
+                        (display_idx + 1).to_string(),
                     ]
                 })
                 .collect(),
         );
 
-        let Some(target_number) =
-            take_input_number("\nWhich of the following shortcuts you came for: ")
+        let Some(target_number) = take_input_number("\nWhich shortcut do you want to remove: ")
         else {
             println!("Invalid number entered!");
             return CommandResult::Continue;
@@ -52,10 +51,11 @@ impl Command for List {
         let target_index = target_number as usize - 1;
 
         let real_idx = sorted_indexes[target_index];
-        app_state.shortcuts.increment_lookup_count(real_idx, 5);
 
+        app_state.shortcuts.shortcuts.remove(real_idx);
         app_state.shortcuts.save().unwrap();
-        println!("Shortcut updated!");
+
+        println!("Shortcut removed!");
 
         CommandResult::Continue
     }

@@ -1,0 +1,10 @@
+max_width = 100
+chain_width = 60
+fn_params_layout = "Tall"  # put each parameter on its own line if breaking
+
+# Break function calls earlier if they have long argument lists
+fn_call_width = 60
+
+# Keep imports tidy and grouped
+reorder_imports = true
+group_imports = "StdExternalCrate"
