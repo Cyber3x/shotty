@@ -28,10 +28,10 @@ impl Command for List {
                 .map(|(display_idx, &shortcut_index)| {
                     let s = &shortcuts[shortcut_index];
                     vec![
-                        s.lookup_count.to_string(),
                         (display_idx + 1).to_string(),
-                        s.key_combo.clone(),
-                        s.description.clone(),
+                        s.get_key_combo().to_string(),
+                        s.get_description().to_string(),
+                        s.get_lookup_count().to_string(),
                     ]
                 })
                 .collect(),

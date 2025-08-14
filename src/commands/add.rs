@@ -1,5 +1,6 @@
+use crate::shortcuts::Shortcut;
 use crate::utils::take_input_line;
-use crate::{AppState, Command, CommandResult, Shortcut};
+use crate::{AppState, Command, CommandResult};
 
 pub struct Add;
 

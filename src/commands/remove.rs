@@ -1,5 +1,3 @@
-use std::cmp::Reverse;
-
 use crate::utils::{self, take_input_number};
 use crate::{AppState, Command, CommandResult};
 
@@ -28,10 +26,10 @@ impl Command for Remove {
                 .map(|(display_idx, &shortcut_index)| {
                     let s = &shortcuts[shortcut_index];
                     vec![
-                        s.lookup_count.to_string(),
-                        s.key_combo.clone(),
-                        s.description.clone(),
                         (display_idx + 1).to_string(),
+                        s.get_key_combo().to_string(),
+                        s.get_description().to_string(),
+                        s.get_lookup_count().to_string(),
                     ]
                 })
                 .collect(),
@@ -52,7 +50,7 @@ impl Command for Remove {
 
         let real_idx = sorted_indexes[target_index];
 
-        app_state.shortcuts.shortcuts.remove(real_idx);
+        app_state.shortcuts.remove_at(real_idx).unwrap();
         app_state.shortcuts.save().unwrap();
 
         println!("Shortcut removed!");

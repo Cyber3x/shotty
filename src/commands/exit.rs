@@ -4,7 +4,7 @@ pub struct Exit;
 
 impl Command for Exit {
     fn execute(&self, _app_state: &mut AppState) -> CommandResult {
-        println!("Goodbye");
+        println!("Goodbye!");
         CommandResult::Exit
     }
 }
