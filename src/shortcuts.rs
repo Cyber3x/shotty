@@ -52,6 +52,7 @@ pub struct Shortcuts {
     #[serde(skip_serializing)]
     save_path: Option<PathBuf>,
 }
+
 impl Default for Shortcuts {
     fn default() -> Self {
         Shortcuts::new()

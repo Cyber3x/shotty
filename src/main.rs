@@ -1,13 +1,36 @@
-use std::{process};
+mod app;
+mod app_state;
+mod screen;
+mod screens;
+mod shortcuts;
+mod utils;
 
-fn main() {
-    // let config = Config::build(env::args()).unwrap_or_else(|err| {
-    //     eprintln!("Problem parsing arguments: {err}");
-    //     process::exit(1);
-    // });
+use ratatui::{
+    Terminal,
+    crossterm::{
+        execute,
+        terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
+    },
+    prelude::CrosstermBackend,
+};
+use std::{error::Error, io};
 
-    if let Err(e) = shotty::run() {
-        eprintln!("Application error: {e}");
-        process::exit(1);
-    }
+use crate::app::App;
+
+fn main() -> Result<(), Box<dyn Error>> {
+    enable_raw_mode()?;
+    let mut stdout = io::stdout();
+    execute!(stdout, EnterAlternateScreen)?;
+
+    let backend = CrosstermBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
+
+    let mut app = App::new();
+    let res = app.run(&mut terminal);
+
+    disable_raw_mode()?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+    terminal.show_cursor()?;
+
+    Ok(())
 }
