@@ -6,9 +6,9 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new() -> Self {
+    pub fn new(shortcuts: Shortcuts) -> Self {
         Self {
-            shortcuts: Shortcuts::new(),
+            shortcuts,
             temp_text: String::from("Hello world"),
         }
     }

@@ -18,16 +18,17 @@ pub struct App {
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new(state: AppState) -> Self {
         Self {
-            state: AppState::new(),
+            state,
             screens: vec![Box::new(MainScreen::new())],
         }
     }
+
     pub fn run<B: Backend>(&mut self, terminal: &mut Terminal<B>) -> io::Result<()> {
         loop {
-            terminal.draw(|frame| {
-                for screen in &self.screens {
+            let _ = terminal.draw(|frame| {
+                for screen in &mut self.screens {
                     screen.draw(frame, frame.area(), &self.state);
                 }
             });

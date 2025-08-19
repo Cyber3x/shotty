@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::{
     cmp::Reverse,
-    env,
     fmt::{self},
     fs::File,
     path::PathBuf,
@@ -122,22 +121,12 @@ impl Shortcuts {
 
     /// Loads shortcuts from a JSON file.
     ///
-    /// If `path_maybe` is `Some`, that path is used. Otherwise, it defaults to
-    /// `shortcuts.json` in the current working directory.
     /// If the file exists, it is read and deserialized into a `Shortcuts` instance.
-    /// If it does not exist, a new `Shortcuts` instance is created.
-    /// In both cases, the `save_path` is set to the chosen path.
-    pub fn load_from_file(path_maybe: Option<PathBuf>) -> Result<Shortcuts, std::io::Error> {
-        let default_path = env::current_dir()?.join("shortcuts.json");
-
-        let path = path_maybe.unwrap_or(default_path);
-
-        let mut shortcuts = if path.exists() {
-            let contents = std::fs::read_to_string(&path)?;
-            serde_json::from_str(&contents)?
-        } else {
-            Shortcuts::new()
-        };
+    /// If it does not exist, a error is returned.
+    /// In the path is valid, the `save_path` is set to the chosen path.
+    pub fn load_from_file(path: PathBuf) -> Result<Shortcuts, std::io::Error> {
+        let contents = std::fs::read_to_string(&path)?;
+        let mut shortcuts: Shortcuts = serde_json::from_str(&contents)?;
 
         shortcuts.set_save_path(path);
         Ok(shortcuts)

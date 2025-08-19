@@ -1,5 +1,5 @@
 use ratatui::{
-    crossterm::{event::KeyCode, terminal::SetTitle},
+    crossterm::event::KeyCode,
     prelude::*,
     style::{Color, Style},
     text::Text,
@@ -12,16 +12,11 @@ use crate::{
     utils,
 };
 
+#[derive(Default)]
 pub struct AddShortcutScreen;
 
-impl AddShortcutScreen {
-    pub fn new() -> Self {
-        Self
-    }
-}
-
 impl Screen for AddShortcutScreen {
-    fn draw(&self, frame: &mut ratatui::Frame, area: Rect, state: &AppState) {
+    fn draw(&mut self, frame: &mut ratatui::Frame, area: Rect, state: &AppState) {
         let area = utils::centered_rect(60, 25, area);
 
         let block = Block::default()

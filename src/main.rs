@@ -15,7 +15,7 @@ use ratatui::{
 };
 use std::{error::Error, io};
 
-use crate::app::App;
+use crate::{app::App, app_state::AppState, shortcuts::Shortcuts};
 
 fn main() -> Result<(), Box<dyn Error>> {
     enable_raw_mode()?;
@@ -25,8 +25,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let mut app = App::new();
-    let res = app.run(&mut terminal);
+    let shortcuts = match Shortcuts::load_from_file("shortcuts.json".into()) {
+        Ok(shortcuts) => shortcuts,
+        Err(_) => Shortcuts::new(),
+    };
+    let app_state = AppState::new(shortcuts);
+    let mut app = App::new(app_state);
+    let _ = app.run(&mut terminal);
 
     disable_raw_mode()?;
     execute!(terminal.backend_mut(), LeaveAlternateScreen)?;

@@ -3,7 +3,7 @@ use ratatui::{Frame, crossterm::event::KeyCode, layout::Rect};
 use crate::app_state::AppState;
 
 pub trait Screen {
-    fn draw(&self, frame: &mut Frame, area: Rect, state: &AppState);
+    fn draw(&mut self, frame: &mut Frame, area: Rect, state: &AppState);
     fn handle_event(&mut self, code: KeyCode, state: &mut AppState) -> ScreenCommand;
 }
 
