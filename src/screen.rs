@@ -1,10 +1,13 @@
-use ratatui::{Frame, crossterm::event::KeyCode, layout::Rect};
+use ratatui::{
+    crossterm::event::KeyEvent,
+    Frame,
+};
 
 use crate::app_state::AppState;
 
 pub trait Screen {
-    fn draw(&mut self, frame: &mut Frame, area: Rect, state: &AppState);
-    fn handle_event(&mut self, code: KeyCode, state: &mut AppState) -> ScreenCommand;
+    fn draw(&mut self, frame: &mut Frame, state: &AppState);
+    fn handle_event(&mut self, key_event: KeyEvent, state: &mut AppState) -> ScreenCommand;
 }
 
 pub enum ScreenCommand {

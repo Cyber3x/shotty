@@ -1,15 +1,31 @@
-use std::{cmp::max, vec};
+use std::{
+    cmp::max,
+    vec,
+};
 
 use ratatui::{
-    crossterm::event::KeyCode,
+    crossterm::event::{
+        KeyCode,
+        KeyEvent,
+        KeyModifiers,
+        ModifierKeyCode,
+    },
     prelude::*,
-    widgets::{Cell, Row, Table, TableState},
+    widgets::{
+        Cell,
+        Row,
+        Table,
+        TableState,
+    },
 };
 use style::palette::tailwind;
 
 use crate::{
     app_state::AppState,
-    screen::{Screen, ScreenCommand},
+    screen::{
+        Screen,
+        ScreenCommand,
+    },
     screens::AddShortcutScreen,
     shortcuts::Shortcut,
 };
@@ -59,18 +75,33 @@ pub struct MainScreen {
 }
 
 impl Screen for MainScreen {
-    fn draw(&mut self, frame: &mut ratatui::Frame, area: Rect, state: &AppState) {
-        self.render_table(frame, area, state);
+    fn draw(&mut self, frame: &mut ratatui::Frame, state: &AppState) {
+        self.render_table(frame, state);
     }
 
     fn handle_event(
         &mut self,
-        code: KeyCode,
+        key_event: KeyEvent,
         _state: &mut AppState,
     ) -> crate::screen::ScreenCommand {
-        match code {
-            KeyCode::Char('q') => ScreenCommand::Quit(true),
-            KeyCode::Char('n') => ScreenCommand::Push(Box::new(AddShortcutScreen)),
+        match key_event {
+            // q or esc
+            KeyEvent {
+                code: KeyCode::Char('q'),
+                ..
+            }
+            | KeyEvent {
+                code: KeyCode::Esc, ..
+            }
+            | KeyEvent {
+                code: KeyCode::Char('c'),
+                modifiers: KeyModifiers::CONTROL,
+                ..
+            } => ScreenCommand::Quit(true),
+            KeyEvent {
+                code: KeyCode::Char('n'),
+                ..
+            } => ScreenCommand::Push(Box::new(AddShortcutScreen::new())),
             _ => ScreenCommand::None,
         }
     }
@@ -79,11 +110,11 @@ impl Screen for MainScreen {
 impl MainScreen {
     pub fn new() -> Self {
         Self {
-            colors: TableColors::new(&PALETTES[3]),
+            colors: TableColors::new(&PALETTES[0]),
             table_state: TableState::default().with_selected(0),
         }
     }
-    fn render_table(&mut self, frame: &mut Frame, area: Rect, state: &AppState) {
+    fn render_table(&mut self, frame: &mut Frame, state: &AppState) {
         let header_style = Style::default()
             .fg(self.colors.header_fg)
             .bg(self.colors.header_bg);
@@ -100,41 +131,8 @@ impl MainScreen {
             .style(header_style)
             .height(1);
 
-        let longest_item_lens = vec![
-            max(
-                state
-                    .shortcuts
-                    .get_all_shortcuts()
-                    .iter()
-                    .map(Shortcut::get_lookup_count)
-                    .map(|a| a.to_string().len())
-                    .max()
-                    .unwrap_or(0),
-                header_text[0].len(),
-            ),
-            max(
-                state
-                    .shortcuts
-                    .get_all_shortcuts()
-                    .iter()
-                    .map(Shortcut::get_key_combo)
-                    .map(|a| a.to_string().len())
-                    .max()
-                    .unwrap_or(0),
-                header_text[1].len(),
-            ),
-            max(
-                state
-                    .shortcuts
-                    .get_all_shortcuts()
-                    .iter()
-                    .map(Shortcut::get_description)
-                    .map(|a| a.to_string().len())
-                    .max()
-                    .unwrap_or(0),
-                header_text[2].len(),
-            ),
-        ];
+        let longest_item_lens =
+            calc_longest_lens(state.shortcuts.get_all_shortcuts(), &header_text);
 
         let rows = state
             .shortcuts
@@ -163,6 +161,38 @@ impl MainScreen {
         )
         .header(header)
         .row_highlight_style(selected_row_style);
-        frame.render_stateful_widget(table, area, &mut self.table_state);
+        frame.render_stateful_widget(table, frame.area(), &mut self.table_state);
     }
+}
+
+fn calc_longest_lens(shortcuts: &[Shortcut], headers: &[&str]) -> Vec<usize> {
+    vec![
+        max(
+            shortcuts
+                .iter()
+                .map(Shortcut::get_lookup_count)
+                .map(|a| a.to_string().len())
+                .max()
+                .unwrap_or(0),
+            headers[0].len(),
+        ),
+        max(
+            shortcuts
+                .iter()
+                .map(Shortcut::get_key_combo)
+                .map(|a| a.to_string().len())
+                .max()
+                .unwrap_or(0),
+            headers[1].len(),
+        ),
+        max(
+            shortcuts
+                .iter()
+                .map(Shortcut::get_description)
+                .map(|a| a.to_string().len())
+                .max()
+                .unwrap_or(0),
+            headers[2].len(),
+        ),
+    ]
 }

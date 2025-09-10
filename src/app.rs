@@ -1,14 +1,20 @@
-use ratatui::{
-    Terminal,
-    crossterm::event::{self, Event},
-    prelude::Backend,
-};
-
 use std::io;
+
+use ratatui::{
+    crossterm::event::{
+        self,
+        Event,
+    },
+    prelude::Backend,
+    Terminal,
+};
 
 use crate::{
     app_state::AppState,
-    screen::{Screen, ScreenCommand},
+    screen::{
+        Screen,
+        ScreenCommand,
+    },
     screens::MainScreen,
 };
 
@@ -29,7 +35,7 @@ impl App {
         loop {
             let _ = terminal.draw(|frame| {
                 for screen in &mut self.screens {
-                    screen.draw(frame, frame.area(), &self.state);
+                    screen.draw(frame, &self.state);
                 }
             });
 
@@ -42,7 +48,7 @@ impl App {
                     .screens
                     .last_mut()
                     .unwrap()
-                    .handle_event(key.code, &mut self.state);
+                    .handle_event(key, &mut self.state);
 
                 match cmd {
                     ScreenCommand::None => {}

@@ -1,9 +1,15 @@
-use serde::{Deserialize, Serialize};
 use std::{
     cmp::Reverse,
-    fmt::{self},
+    fmt::{
+        self,
+    },
     fs::File,
     path::PathBuf,
+};
+
+use serde::{
+    Deserialize,
+    Serialize,
 };
 
 #[derive(Debug, Serialize, Deserialize)]
