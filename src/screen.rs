@@ -1,7 +1,5 @@
-use ratatui::{
-    crossterm::event::KeyEvent,
-    Frame,
-};
+#![allow(dead_code)]
+use ratatui::{crossterm::event::KeyEvent, Frame};
 
 use crate::app_state::AppState;
 
@@ -11,7 +9,7 @@ pub trait Screen {
 }
 
 pub enum ScreenCommand {
-    /// we handled a key and dont want anything to happen
+    /// we handled a key and don't want anything to happen
     None,
 
     // The current screen needs to close
@@ -23,6 +21,6 @@ pub enum ScreenCommand {
     // We want to swap the current screen with a new one
     Swap(Box<dyn Screen>),
 
-    // We want to completly exit the application
+    // We want to completely exit the application
     Quit(bool),
 }

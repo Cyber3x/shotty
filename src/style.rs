@@ -34,17 +34,6 @@ impl PatchStyle {
 ///
 /// # Returns
 /// A new `Style` with all applicable patches applied.
-///
-/// # Example
-/// ```rust
-/// use ratatui::style::{Style, Color};
-/// let base = Style::default().fg(Color::White);
-/// let patches = vec![
-///     PatchStyle::new(true, Style::default().bg(Color::Black)),
-///     PatchStyle::new(false, Style::default().fg(Color::Red)),
-/// ];
-/// let final_style = compose_style(base, patches);
-/// ```
 pub fn compose_style(mut base_style: Style, patch_styles: Vec<PatchStyle>) -> Style {
     patch_styles
         .iter()

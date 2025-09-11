@@ -5,31 +5,20 @@ mod screens;
 mod shortcuts;
 mod style;
 mod utils;
+mod widgets;
 
-use std::{
-    error::Error,
-    io,
-};
+use std::{error::Error, io};
 
 use ratatui::{
     crossterm::{
         execute,
-        terminal::{
-            disable_raw_mode,
-            enable_raw_mode,
-            EnterAlternateScreen,
-            LeaveAlternateScreen,
-        },
+        terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     },
     prelude::CrosstermBackend,
     Terminal,
 };
 
-use crate::{
-    app::App,
-    app_state::AppState,
-    shortcuts::Shortcuts,
-};
+use crate::{app::App, app_state::AppState, shortcuts::Shortcuts};
 
 fn main() -> Result<(), Box<dyn Error>> {
     enable_raw_mode()?;

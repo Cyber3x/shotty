@@ -1,9 +1,9 @@
-use ratatui::layout::{
+use ratatui::{layout::{
     Constraint,
     Direction,
     Layout,
     Rect,
-};
+}};
 
 pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let popup_layout = Layout::default()
@@ -23,14 +23,4 @@ pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
             Constraint::Percentage((100 - percent_x) / 2),
         ])
         .split(popup_layout[1])[1]
-}
-
-pub fn compose_style(mut base_style: Style, patch_styles: Vec<PatchStyle>) -> Style {
-    patch_styles
-        .iter()
-        .filter(|style| style.condition)
-        .map(|style| style.style)
-        .for_each(|style| base_style = base_style.patch(style));
-
-    base_style
 }

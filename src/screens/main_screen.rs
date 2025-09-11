@@ -1,31 +1,15 @@
-use std::{
-    cmp::max,
-    vec,
-};
+use std::{cmp::max, vec};
 
 use ratatui::{
-    crossterm::event::{
-        KeyCode,
-        KeyEvent,
-        KeyModifiers,
-        ModifierKeyCode,
-    },
+    crossterm::event::{KeyCode, KeyEvent, KeyModifiers},
     prelude::*,
-    widgets::{
-        Cell,
-        Row,
-        Table,
-        TableState,
-    },
+    widgets::{Cell, Row, Table, TableState},
 };
 use style::palette::tailwind;
 
 use crate::{
     app_state::AppState,
-    screen::{
-        Screen,
-        ScreenCommand,
-    },
+    screen::{Screen, ScreenCommand},
     screens::AddShortcutScreen,
     shortcuts::Shortcut,
 };
@@ -92,11 +76,6 @@ impl Screen for MainScreen {
             }
             | KeyEvent {
                 code: KeyCode::Esc, ..
-            }
-            | KeyEvent {
-                code: KeyCode::Char('c'),
-                modifiers: KeyModifiers::CONTROL,
-                ..
             } => ScreenCommand::Quit(true),
             KeyEvent {
                 code: KeyCode::Char('n'),
