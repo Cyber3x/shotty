@@ -11,6 +11,7 @@ use ratatui::{
         },
         Color,
         Style,
+        Styled,
     },
     text::Text,
     widgets::{
@@ -30,6 +31,7 @@ use crate::{
     utils,
 };
 
+#[derive(Debug, PartialEq)]
 enum ActiveInput {
     Shortcut,
     Description,
@@ -41,6 +43,8 @@ pub struct AddShortcutScreen {
     active_input: ActiveInput,
 }
 
+const BG_COLOR: Color = tailwind::GRAY.c700;
+
 impl AddShortcutScreen {
     pub fn new() -> Self {
         // create the inital state
@@ -51,50 +55,70 @@ impl AddShortcutScreen {
         }
     }
 
-    fn render_shortcut_input(&self, area: Rect, buf: &mut Buffer, state: &AppState) {
-        // Example: draw a label + input box
-        let bg_color = match self.active_input {
-            ActiveInput::Shortcut => tailwind::ORANGE.c200,
-            _ => Color::Red,
-        };
+    fn render_shortcut_input(&self, area: Rect, frame: &mut Frame, state: &AppState) {
+        let border_style = compose_style(
+            Style::default(),
+            vec![PatchStyle::new(
+                self.active_input == ActiveInput::Shortcut,
+                Style::default().fg(tailwind::GREEN.c500),
+            )],
+        );
 
-        let block = Block::default()
-            .borders(Borders::ALL)
-            .title("Shortcut")
-            .bg(bg_color);
-        block.render(area, buf);
+        let input = Paragraph::new("Hello".to_owned()).block(
+            Block::bordered()
+                .title("Shortcut")
+                .border_style(border_style),
+        );
+
+        frame.render_widget(input, area);
     }
 
-    fn render_description_input(&self, area: Rect, buf: &mut Buffer, state: &AppState) {
-        let block = Block::default().borders(Borders::ALL).title("Description");
-        block.render(area, buf);
-    }
-}
-
-impl Screen for AddShortcutScreen {
-    fn draw(&mut self, frame: &mut ratatui::Frame, state: &AppState) {
-        let area = utils::centered_rect(60, 25, frame.area());
-        let buf = frame.buffer_mut();
-
-        let title = Span::styled(
-            "Add new shortcut",
-            Style::default()
-                .add_modifier(Modifier::BOLD)
-                .fg(tailwind::ORANGE.c400),
+    fn render_description_input(&self, area: Rect, frame: &mut Frame, state: &AppState) {
+        let border_style = compose_style(
+            Style::default(),
+            vec![PatchStyle::new(
+                self.active_input == ActiveInput::Description,
+                Style::default().fg(tailwind::GREEN.c500),
+            )],
         );
 
         let block = Block::default()
             .borders(Borders::ALL)
-            .bg(tailwind::GRAY.c700)
+            .title("Description")
+            .border_style(border_style);
+
+        frame.render_widget(block, area);
+    }
+}
+
+impl Screen for AddShortcutScreen {
+    fn draw(&mut self, frame: &mut Frame, state: &AppState) {
+        let area = utils::centered_rect(60, 25, frame.area());
+
+        let title = Span::styled(
+            "Add new shortcut",
+            Style::default().add_modifier(Modifier::BOLD),
+        );
+
+        let block = Block::default()
+            .borders(Borders::ALL)
+            .bg(BG_COLOR)
             .title(title);
+
         let inner = block.inner(area);
-        block.render(area, buf);
 
-        let [shortcut, desc] =
-            Layout::vertical([Constraint::Length(3), Constraint::Length(3)]).areas(inner);
+        frame.render_widget(block, area);
 
-        self.render_shortcut_input(shortcut, buf, state);
-        self.render_description_input(desc, buf, state);
+        let [shortcut, desc, buttons] = Layout::vertical([
+            Constraint::Length(3),
+            Constraint::Length(3),
+            Constraint::Min(1),
+        ])
+        .areas(inner);
+
+        self.render_shortcut_input(shortcut, frame, state);
+        self.render_description_input(desc, frame, state);
+        // TODO: render buttons
     }
 
     fn handle_event(
@@ -110,6 +134,13 @@ impl Screen for AddShortcutScreen {
             }
             KeyCode::Backspace => {
                 state.temp_text.pop();
+                ScreenCommand::None
+            }
+            KeyCode::Tab => {
+                match self.active_input {
+                    ActiveInput::Shortcut => self.active_input = ActiveInput::Description,
+                    ActiveInput::Description => self.active_input = ActiveInput::Shortcut,
+                }
                 ScreenCommand::None
             }
             _ => ScreenCommand::None,
