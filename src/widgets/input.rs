@@ -14,7 +14,6 @@ pub struct Input {
     label: String,
     text: String,
 
-    editing: bool,
     focused: bool,
 }
 
@@ -25,6 +24,14 @@ impl Input {
             text: text.to_owned(),
             ..Default::default()
         }
+    }
+
+    pub fn set_focused(&mut self, focused: bool) {
+        self.focused = focused
+    }
+
+    pub fn get_value(&self) -> &str {
+        &self.label
     }
 }
 
@@ -40,33 +47,16 @@ impl Widget for Input {
             )],
         );
 
-        let paragraph = Paragraph::new(
-            self.text
-                .as_str(),
-        )
-        .block(
+        let paragraph = Paragraph::new(self.text.as_str()).block(
             Block::bordered()
                 .border_style(style)
-                .title(
-                    self.label
-                        .as_str(),
-                ),
+                .title(self.label.as_str()),
         );
 
-        frame.render_widget(
-            paragraph, area,
-        );
+        frame.render_widget(paragraph, area);
     }
 
-    fn handle_event(&mut self, key_event: ratatui::crossterm::event::KeyEvent) -> bool {
+    fn handle_event(&mut self, _key_event: ratatui::crossterm::event::KeyEvent) -> bool {
         todo!()
-    }
-
-    fn set_focused(&mut self, focused: bool) {
-        self.focused = focused;
-    }
-
-    fn is_focused(&self) -> bool {
-        self.focused
     }
 }

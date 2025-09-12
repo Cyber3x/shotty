@@ -1,7 +1,7 @@
 use std::{cmp::max, vec};
 
 use ratatui::{
-    crossterm::event::{KeyCode, KeyEvent, KeyModifiers},
+    crossterm::event::{KeyCode, KeyEvent},
     prelude::*,
     widgets::{Cell, Row, Table, TableState},
 };
